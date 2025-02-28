@@ -1,0 +1,136 @@
+
+Method : Post
+/SignUp/Tenants
+{   
+    "tenant_name" :"Ganesh",
+    "mobile_number":7200679990,
+    "email":"GaneshGeetha@gmail.com",
+    "password":"Geethu@143",
+    "family_count":6,
+    "aadhar_no":768594895588
+}
+{   
+    "tenant_name" :"Saroja",
+    "mobile_number":8989267890,
+    "email":"Saroja003@gmail.com",
+    "password":"Saroja",
+    "family_count":3,
+    "aadhar_no":37894022
+}
+{   
+    "tenant_name" :"Seran",
+    "mobile_number":9940354676,
+    "email":"SeranSettu003@gmail.com",
+    "password":"SeranSettu",
+    "family_count":7,
+    "aadhar_no":567845356274
+}
+{   
+    "tenant_name" :"Yogi",
+    "mobile_number":7200989890,
+    "email":"YogiRahul0@gmail.com",
+    "password":"Yogirahul@",
+    "family_count":3,
+    "aadhar_no":543456987878
+}
+
+Method : Post
+/SignUp/Owners
+{   
+    "owner_name" :"Baskar G",
+    "mobile_number":9400342767,
+    "email":"Baskar23@yahoo.com",
+    "password":"BaskarGG",
+    "address":"No:23,Brownstone Apartments,chennai"
+}
+{   
+    "owner_name" :"Kishore",
+    "mobile_number":9935678890,
+    "email":"Kichu2003@yahoo.com",
+    "password":"KichuKishore",
+    "address":"No:23,Brownstone Apartments,chennai"
+}
+
+
+
+Method : Post
+/SignIn/owner
+{
+    "email":"Baskar23@yahoo.com",
+    "password":"BaskarGG"
+}
+
+Method : Post
+/SignIn/tenant
+{
+    "email":"YogiRahul0@gmail.com",
+    "password":"Yogirahul@"
+}
+Method : Post
+/Tenant/Owner-Request
+{
+    "id":"67c1b46f7036e8799631c0aa",
+    "email":"Kichu2003@yahoo.com",
+    "message":"Request to avail the rental house and connect to share issues",
+    "address":"Door No:43,Brown Stone apartments,Nungambakkam,Chennai",
+    "location":"Chennai"
+}
+{
+    "id":"67c1b5087036e8799631c0ab",
+    "email":"Kichu2003@yahoo.com",
+    "message":"Request to avail the rental house and connect to share issues",
+    "address":"Door No:42,Brown Stone apartments,Nungambakkam,Chennai",
+    "location":"Chennai"
+}
+
+{
+    "id":"67c1b55c7036e8799631c0ac",
+    "email":"Baskar23@yahoo.com",
+    "message":"Request to avail the rental house and connect to share issues",
+    "address":"Door No:56,Janani apartments,kodambakkam,Chennai",
+    "location":"Chennai"
+}
+
+{
+    "id":"67c1b5ef7036e8799631c0ad",
+    "email":"Baskar23@yahoo.com",
+    "message":"Request to avail the rental house and connect to share issues",
+    "address":"Door No:3,Janani apartments,kodambakkam,Chennai",
+    "location":"Chennai"
+}
+Method : Post
+/Tenant/Raise-issue
+
+
+
+
+Method: PUT
+/Owner/{requestId}/update-status?status="Accepted"  (or) "Rejected"
+
+
+Method : Get
+/Owner/Pending-Request/{ownerId}
+/Owner/Accepted-Request/{ownerId}
+
+
+Method : Post
+/Tenant/Raise-issue
+{
+    "owner_id":"67c1b2477036e8799631c0a8",
+    "tenant_id":"67c1b55c7036e8799631c0ac",
+    "statement":"Water leakage in kitchen",
+    "type":"Plumbing",
+    "posted":"2025-02-28T15:30:00",
+    "estimated_days":4
+
+}
+{
+    "owner_id":"67c1b2477036e8799631c0a8",
+    "tenant_id":"67c1b55c7036e8799631c0ac",
+    "statement":"Door Frame Broken ",
+    "type":"Plumbing",
+    "posted":"2025-02-28T15:30:00",
+    "estimated_days":4
+
+}
+
