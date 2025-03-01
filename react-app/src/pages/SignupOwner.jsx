@@ -7,8 +7,6 @@ const SignupOwner = () => {
     name: "",
     email: "",
     phone: "",
-    dob: "",
-    aadhar: "",
     address: "",
     password: "",
     confirmPassword: ""
@@ -38,27 +36,31 @@ const SignupOwner = () => {
       password: formData.password,
     };
   
-    try {
-      const response = await fetch("http://localhost:8080/SignUp/Owners", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(ownerData),
-      });
-  
-      if (response.ok) {
-        alert("Signup Successful!");
-        navigate("/owner-dashboard");
-      } else {
-        alert("Signup Failed! Please try again.");
+   
+      try {
+        const response = await fetch("http://localhost:8080/SignUp/Owners", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(ownerData),
+        });
+    
+        if (response.ok) {
+          const responseData = await response.json();
+          localStorage.setItem("User", JSON.stringify(responseData));
+          alert("Signup Successful!");
+          navigate("/owner-dashboard");
+        } else {
+          const errorMessage = await response.text();
+          alert(errorMessage || "Signup failed. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        alert("Error connecting to the server.");
       }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("Error connecting to the server.");
-    }
-  };
-  
+    };
+    
   // const handleSubmit = (e) => {
   //   e.preventDefault();
   //   if (formData.password !== formData.confirmPassword) {
@@ -111,17 +113,17 @@ const SignupOwner = () => {
               placeholder="Phone Number"
               className="flex-1 p-3 rounded-lg text-black outline-none shadow-md focus:ring-2 focus:ring-[#D09683] transition"
             />
-           <input
+           {/* <input
               type="date"
               name="dob"
               value={formData.dob}
               onChange={handleChange}
               required
               className="flex-1 p-3 rounded-lg text-gray-500 bg-white outline-none shadow-md focus:ring-2 focus:ring-[#D09683] transition"
-            />
+            /> */}
           </div>
 
-          <input
+          {/* <input
             type="text"
             name="aadhar"
             value={formData.aadhar}
@@ -129,7 +131,7 @@ const SignupOwner = () => {
             required
             placeholder="Aadhar Number"
             className="w-3/4 p-3 mt-4 rounded-lg text-black outline-none shadow-md focus:ring-2 focus:ring-[#D09683] transition"
-          />
+          /> */}
 
           <input
             type="text"

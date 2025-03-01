@@ -27,10 +27,10 @@ const SignInSignUp = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`http://localhost:8080/login/${role}`, formData);
+      const response = await axios.post(`http://localhost:8080/SignIn/${role}`, formData);
       
-      alert(response.data); // Show success message
-
+      localStorage.setItem("User",JSON.stringify(response.data)) // Show success message
+      alert("Login successfull!!")
       // Store JWT Token if authentication is implemented
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
@@ -120,3 +120,4 @@ const SignInSignUp = () => {
 };
 
 export default SignInSignUp;
+
