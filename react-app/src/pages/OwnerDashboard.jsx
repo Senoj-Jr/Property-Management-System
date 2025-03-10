@@ -11,6 +11,7 @@ const OwnerDashboard = () => {
   const [issues, setIssues] = useState([]);
   const [owner, setOwner] = useState({ owner_id:"",owner_name: "", email: "", mobile_number: "", address: "" });
   const [requestedTenants, setRequestedTenants] = useState([]);
+  const [requests,setRequest]=useState([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate(); // Initialize navigate function
   useEffect(() => {
@@ -24,7 +25,7 @@ const OwnerDashboard = () => {
       // Fetch accepted requests
       axios.get(`http://localhost:8080/Owner/Accepted-Request/${owner.owner_id}`)
         .then((response) => {
-          console.log("Accepted Requests:", response.data); // Debugging step
+          console.log("Accepted Requests:", response.data,"-",typeof(response.data[0])); // Debugging step
           const extractedTenants = response.data.map((request) => request.tenants);
           setTenants(extractedTenants);
         })
@@ -33,7 +34,7 @@ const OwnerDashboard = () => {
       // Fetch pending issues
       axios.get(`http://localhost:8080/Owner/PendingIssue/${owner.owner_id}`)
         .then((response) => {
-          console.log("Issues Related to Owner:", response.data);
+          console.log("Issues Related to Owner:", response.data,"-",typeof(response.data));
           setIssues(response.data);
         })
         .catch((err) => console.error("Error fetching pending issues:", err));
@@ -41,14 +42,25 @@ const OwnerDashboard = () => {
       // Fetch pending requests
       axios.get(`http://localhost:8080/Owner/Pending-Request/${owner.owner_id}`)
         .then((response) => {
-          console.log("Pending Requests:", response.data); // Debugging step
-          const extractedPendingTenants = response.data.map((request) => request.tenants);
-          setRequestedTenants(extractedPendingTenants);
+          console.log("Pending Requests:", response.data,"-",typeof(response.data)); // Debugging step // Save properly formatted data
+          setRequest(response.data);
         })
         .catch((err) => console.error("Error fetching pending tenant requests:", err));
     }
   }, [owner?.owner_id]); // Dependency array corrected
   
+  const updateStatus = async (requestId, status) => {
+    try {
+      const response = await axios.put(`http://localhost:8080/Owner/${requestId}/update-status`, null, {
+        params: { status: status },
+      });
+      console.log("Status Updated:", response.data);
+      alert("Status updated successfully!");
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Failed to update status.");
+    }
+  };
 
   // Logout function
   const handleSignOut = () => {
@@ -94,47 +106,100 @@ const OwnerDashboard = () => {
 
       {/* Main Content */}
       <div className="flex-1 p-8 overflow-y-auto bg-[#D09683] text-[#330000] rounded-3xl shadow-2xl m-4 flex flex-col">
-        {activeView === "home" && (
-          <div>
-            <h2 className="text-4xl font-bold mb-6">Available Tenants</h2>
-            <ul>
-              {tenants.map((tenant) => (
-                <li key={tenant.tenant_id} className="bg-white p-4 rounded-lg shadow-md mb-2 text-black">
-                  {tenant.tenant_name} - {tenant.email}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      {activeView === "home" && (
+  <div className="p-6">
+    <h2 className="text-4xl font-bold mb-6 text-center">Available Tenants</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {tenants.map((tenant) => (
+        <div
+          key={tenant.tenant_id}
+          className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200"
+        >
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            {tenant.tenant_name}
+          </h3>
+          <p className="text-gray-600">✉️ {tenant.email}</p>
+          <p className="text-gray-600">📞 {tenant.mobile_number}</p>
+          <p className="text-gray-600">📍 {tenant.address} , {tenant.location}</p>
+          
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
-        {activeView === "addTenant" && (
-          <div>
-            <h2 className="text-4xl font-bold mb-6">Requested Tenants</h2>
-            <ul>
-              {requestedTenants.map((tenant) => (
-                <li key={tenant.tenant_id} className="bg-white p-4 rounded-lg shadow-md mb-2 text-black">
-                  {tenant.tenant_name} - {tenant.mobile_number} <button className="ml-4 p-2 bg-green-500 text-white rounded">Approve</button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
-        {activeView === "issues" && (
-          <CCard style={{ width: '18rem' }}>
-          <CCardBody>
-            <CCardTitle>Card title</CCardTitle>
-            <CCardSubtitle className="mb-2 text-body-secondary">Card subtitle</CCardSubtitle>
-            <CCardText>
-              Some quick example text to build on the card title and make up the bulk of the card's
-              content.
-            </CCardText>
-            <CCardLink href="#">Card link</CCardLink>
-            <CCardLink href="#">Another link</CCardLink>
-          </CCardBody>
-        </CCard>
-        
-        )}
+{activeView === "addTenant" && (
+  <div className="p-6">
+    <h2 className="text-4xl font-bold mb-6 text-center">Requested Tenants</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {requests.map((request) => {
+        const tenantsArray = [request.tenants]; // Wrap the object in an array
+
+        return tenantsArray.map((tenant) => (
+          <div
+            key={tenant.tenant_id}
+            className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200"
+          >
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">
+              {tenant.tenant_name}
+            </h3>
+            <p className="text-gray-600 mb-1">
+              📞 {tenant.mobile_number}
+            </p>
+            <p className="text-gray-600 mb-1">
+              📍 {request.requested_address}, {request.req_location}
+            </p>
+            <p className="text-gray-600 mb-4">
+              ✉️ {tenant.email}
+            </p>
+            <div className="flex justify-between">
+              <button
+                className="px-4 py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600"
+                onClick={() => updateStatus(request.request_id, "Accepted")}
+              >
+                ✅ Accept
+              </button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600"
+                onClick={() => updateStatus(request.request_id, "Rejected")}
+              >
+                ❌ Reject
+              </button>
+            </div>
+          </div>
+        ));
+      })}
+    </div>
+  </div>
+)}
+
+       
+
+{activeView === "issues" && (
+  <div className="p-6">
+    <h2 className="text-4xl font-bold mb-6 text-center">Issue List</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {issues.map((issue) => (
+        <div
+          key={issue.issue_id}
+          className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200"
+        >
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            {issue.description}
+          </h3>
+          <p className="text-gray-600">
+            ⚠️ <span className="font-medium">Severity:</span> {issue.severity}
+          </p>
+          <p className="text-gray-600">
+            👤 <span className="font-medium">Raised by:</span> {issue.tenants.tenant_name}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
       </div>
 
       {/* Profile Modal */}
