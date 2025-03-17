@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import logo from "../assets/logo.png"; // Reusing logo from Home component
 
 const SignupOwner = () => {
   const navigate = useNavigate();
@@ -12,13 +14,27 @@ const SignupOwner = () => {
     confirmPassword: ""
   });
   const [passwordMatch, setPasswordMatch] = useState(true);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  
+  // Track mouse position for parallax effects
+  const handleMouseMove = (e) => {
+    setMousePosition({
+      x: e.clientX / window.innerWidth,
+      y: e.clientY / window.innerHeight
+    });
+  };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (e.target.name === "confirmPassword" || e.target.name === "password") {
-      setPasswordMatch(formData.password === e.target.value || formData.confirmPassword === e.target.value);
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    if (name === "confirmPassword") {
+      setPasswordMatch(formData.password === value);
+    } else if (name === "password") {
+      setPasswordMatch(formData.confirmPassword === "" || value === formData.confirmPassword);
     }
   };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
   
@@ -36,139 +52,210 @@ const SignupOwner = () => {
       password: formData.password,
     };
   
-   
-      try {
-        const response = await fetch("http://localhost:8080/SignUp/Owners", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(ownerData),
-        });
-    
-        if (response.ok) {
-          const responseData = await response.json();
-          localStorage.setItem("User", JSON.stringify(responseData));
-          alert("Signup Successful!");
-          navigate("/owner-dashboard");
-        } else {
-          const errorMessage = await response.text();
-          alert(errorMessage || "Signup failed. Please try again.");
-        }
-      } catch (error) {
-        console.error("Error submitting form:", error);
-        alert("Error connecting to the server.");
+    try {
+      const response = await fetch("http://localhost:8080/SignUp/Owners", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(ownerData),
+      });
+  
+      if (response.ok) {
+        const responseData = await response.json();
+        localStorage.setItem("User", JSON.stringify(responseData));
+        alert("Signup Successful!");
+        navigate("/owner-dashboard");
+      } else {
+        const errorMessage = await response.text();
+        alert(errorMessage || "Signup failed. Please try again.");
       }
-    };
-    
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   if (formData.password !== formData.confirmPassword) {
-  //     alert("Passwords do not match!");
-  //     return;
-  //   }
-  //   alert("Form Submitted Successfully");
-  //   console.log(formData);
-  //   navigate("/owner-dashboard");
-  // };
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("Error connecting to the server.");
+    }
+  };
 
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#330000] text-white relative">
-      {/* Background Effect */}
-      <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: "url('https://source.unsplash.com/1920x1080/?luxury,architecture')" }}></div>
-
-      {/* Form Box */}
-      <div className="z-10 p-10 bg-[#73605B] bg-opacity-95 rounded-3xl shadow-2xl border-4 border-[#D09683] w-[40%] flex flex-col items-center">
-        <h2 className="text-4xl font-extrabold mb-6 text-[#D09683] drop-shadow-lg">Owner Signup</h2>
-
-        <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-            placeholder="Name"
-            className="w-3/4 p-3 rounded-lg text-black outline-none shadow-md focus:ring-2 focus:ring-[#D09683] transition"
+    <div className="h-screen w-screen flex items-stretch bg-[#190000] text-white relative overflow-hidden" onMouseMove={handleMouseMove}>
+      {/* Full-screen Background with Parallax */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ 
+          backgroundImage: "url('https://source.unsplash.com/1920x1080/?luxury,mansion,interior')",
+          transform: `translate(${mousePosition.x * -15}px, ${mousePosition.y * -15}px) scale(1.1)`,
+          transition: "transform 0.2s ease-out",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#000000] via-[#220000]/85 to-[#330000]/75"></div>
+      </div>
+      
+      {/* Decorative Elements - Reduced quantity for vertical space */}
+      <div className="absolute inset-0">
+        {/* Golden Radial Gradient */}
+        <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 rounded-full bg-[#D09683]/10 blur-3xl"></div>
+        
+        {/* Animated Particles - Reduced to 15 */}
+        {[...Array(15)].map((_, i) => (
+          <div 
+            key={i}
+            className="absolute rounded-full"
+            style={{
+              width: `${Math.random() * 4 + 1}px`,
+              height: `${Math.random() * 4 + 1}px`,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              background: `rgba(${208 + Math.random() * 30}, ${150 + Math.random() * 30}, ${131 + Math.random() * 30}, ${Math.random() * 0.5 + 0.3})`,
+              boxShadow: `0 0 ${Math.random() * 6 + 2}px rgba(${208}, ${150}, ${131}, 0.8)`,
+              animation: `float ${Math.random() * 15 + 10}s infinite ease-in-out`,
+            }}
           />
-
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            placeholder="Email"
-            className="w-3/4 p-3 mt-4 rounded-lg text-black outline-none shadow-md focus:ring-2 focus:ring-[#D09683] transition"
-          />
-
-          {/* Phone Number & DOB in Same Row */}
-          <div className="flex w-3/4 gap-4 mt-4">
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              placeholder="Phone Number"
-              className="flex-1 p-3 rounded-lg text-black outline-none shadow-md focus:ring-2 focus:ring-[#D09683] transition"
-            />
-           {/* <input
-              type="date"
-              name="dob"
-              value={formData.dob}
-              onChange={handleChange}
-              required
-              className="flex-1 p-3 rounded-lg text-gray-500 bg-white outline-none shadow-md focus:ring-2 focus:ring-[#D09683] transition"
-            /> */}
+        ))}
+      </div>
+      
+      {/* Main Layout - Compact */}
+      <div className="flex flex-col w-full h-full z-10">
+        {/* Compact Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex justify-between items-center px-4 py-2"
+        >
+          <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
+            <img src={logo} alt="Luxury Living Logo" className="w-8 h-8" />
+            <h2 className="ml-2 text-xl font-light">
+              <span className="font-bold text-[#D09683]">Luxury</span> Living
+            </h2>
           </div>
+          
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-3 py-1 border border-[#D09683] text-[#D09683] rounded-md hover:bg-[#D09683]/10 transition-colors text-sm"
+            onClick={() => navigate("/")}
+          >
+            Back
+          </motion.button>
+        </motion.div>
+        
+        {/* Main Content - Scrollable */}
+        <div className="flex-1 px-4 py-2 flex justify-center overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="bg-black/30 backdrop-filter backdrop-blur-md rounded-xl border border-white/10 p-5 w-full max-w-md self-center"
+          >
+            <div className="flex items-center justify-center mb-4">
+              <span className="text-2xl mr-2">🏛️</span>
+              <h2 className="text-xl font-light">
+                <span className="font-bold text-[#D09683]">Owner</span> Registration
+              </h2>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+                placeholder="Full Name"
+                className="w-full p-2 rounded-lg text-black outline-none shadow-md bg-white/90 focus:ring-2 focus:ring-[#D09683] transition text-sm"
+              />
 
-          {/* <input
-            type="text"
-            name="aadhar"
-            value={formData.aadhar}
-            onChange={handleChange}
-            required
-            placeholder="Aadhar Number"
-            className="w-3/4 p-3 mt-4 rounded-lg text-black outline-none shadow-md focus:ring-2 focus:ring-[#D09683] transition"
-          /> */}
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                placeholder="Email Address"
+                className="w-full p-2 rounded-lg text-black outline-none shadow-md bg-white/90 focus:ring-2 focus:ring-[#D09683] transition text-sm"
+              />
 
-          <input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            required
-            placeholder="House Address"
-            className="w-3/4 p-3 mt-4 rounded-lg text-black outline-none shadow-md focus:ring-2 focus:ring-[#D09683] transition"
-          />
+              <input
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                placeholder="Phone Number"
+                className="w-full p-2 rounded-lg text-black outline-none shadow-md bg-white/90 focus:ring-2 focus:ring-[#D09683] transition text-sm"
+              />
 
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-            placeholder="Password"
-            className="w-3/4 p-3 mt-4 rounded-lg text-black outline-none shadow-md focus:ring-2 focus:ring-[#D09683] transition"
-          />
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+                placeholder="Address"
+                className="w-full p-2 rounded-lg text-black outline-none shadow-md bg-white/90 focus:ring-2 focus:ring-[#D09683] transition text-sm"
+              />
 
-          <input
-            type="password"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-            placeholder="Confirm Password"
-            className={`w-3/4 p-3 mt-4 rounded-lg text-black outline-none shadow-md focus:ring-2 transition ${passwordMatch ? "focus:ring-[#D09683]" : "focus:ring-red-500 border-red-500"}`}
-          />
-          {!passwordMatch && <p className="text-red-500 mt-2">Passwords do not match!</p>}
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                placeholder="Password"
+                className="w-full p-2 rounded-lg text-black outline-none shadow-md bg-white/90 focus:ring-2 focus:ring-[#D09683] transition text-sm"
+              />
 
-          {/* Submit Button */}
-          <button type="submit" className="mt-6 px-8 py-3 bg-[#D09683] text-[#330000] font-bold text-xl rounded-xl shadow-lg transition-all transform hover:scale-105 hover:bg-opacity-90">
-            Submit
-          </button>
-        </form>
+              <div className="relative">
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  placeholder="Confirm Password"
+                  className={`w-full p-2 rounded-lg text-black outline-none shadow-md focus:ring-2 transition text-sm
+                    ${!passwordMatch && formData.confirmPassword !== "" ? "border-red-500 focus:ring-red-500" : "focus:ring-[#D09683]"}`}
+                />
+                {!passwordMatch && formData.confirmPassword !== "" && (
+                  <p className="absolute -bottom-5 left-0 text-red-400 text-xs">Passwords don't match</p>
+                )}
+              </div>
+              
+              <div className="pt-4">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  type="submit"
+                  className="w-full py-2 bg-gradient-to-r from-[#D09683] to-[#c88975] text-white font-bold text-sm rounded-lg shadow-lg transition-all transform"
+                >
+                  Create Account
+                </motion.button>
+              </div>
+              
+              <div className="text-center pt-2">
+                <p className="text-white/60 text-xs">
+                  Already have an account?{" "}
+                  <span 
+                    className="text-[#D09683] cursor-pointer hover:underline"
+                    onClick={() => navigate("/auth?role=owner")}
+                  >
+                    Sign in
+                  </span>
+                </p>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+        
+        {/* Footer - Reduced */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+          className="py-2 px-4 text-center text-white/60 text-xs"
+        >
+          © 2025 Luxury Living. All rights reserved.
+        </motion.div>
       </div>
     </div>
   );
