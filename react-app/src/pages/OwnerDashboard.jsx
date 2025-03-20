@@ -1,19 +1,35 @@
 import { useState, useEffect } from "react";
-import { data, useNavigate } from "react-router-dom"; // Import navigate
+import { useNavigate } from "react-router-dom";
 import { FiMenu, FiX, FiUserPlus, FiAlertCircle, FiHome, FiUser, FiLogOut } from "react-icons/fi";
 import axios from "axios";
-import { CCard, CCardBody, CCardLink, CCardSubtitle, CCardText, CCardTitle } from '@coreui/react'
+import { motion } from "framer-motion";
+import logo from "../assets/logo.png"; // Assuming you have a logo
 
 const OwnerDashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState("home");
   const [tenants, setTenants] = useState([]);
   const [issues, setIssues] = useState([]);
-  const [owner, setOwner] = useState({ owner_id:"",owner_name: "", email: "", mobile_number: "", address: "" });
+  const [owner, setOwner] = useState({ owner_id:"", owner_name: "", email: "", mobile_number: "", address: "" });
   const [requestedTenants, setRequestedTenants] = useState([]);
-  const [requests,setRequest]=useState([]);
+  const [requests, setRequest] = useState([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const navigate = useNavigate(); // Initialize navigate function
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const navigate = useNavigate();
+
+  // Track mouse position for parallax effect
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({
+        x: e.clientX / window.innerWidth,
+        y: e.clientY / window.innerHeight,
+      });
+    };
+    
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+  
   useEffect(() => {
     // Fetch local storage data
     const storedOwner = localStorage.getItem("User");
@@ -25,7 +41,7 @@ const OwnerDashboard = () => {
       // Fetch accepted requests
       axios.get(`http://localhost:8080/Owner/Accepted-Request/${owner.owner_id}`)
         .then((response) => {
-          console.log("Accepted Requests:", response.data,"-",typeof(response.data[0])); // Debugging step
+          console.log("Accepted Requests:", response.data,"-",typeof(response.data[0]));
           const extractedTenants = response.data.map((request) => request.tenants);
           setTenants(extractedTenants);
         })
@@ -42,12 +58,12 @@ const OwnerDashboard = () => {
       // Fetch pending requests
       axios.get(`http://localhost:8080/Owner/Pending-Request/${owner.owner_id}`)
         .then((response) => {
-          console.log("Pending Requests:", response.data,"-",typeof(response.data)); // Debugging step // Save properly formatted data
+          console.log("Pending Requests:", response.data,"-",typeof(response.data));
           setRequest(response.data);
         })
         .catch((err) => console.error("Error fetching pending tenant requests:", err));
     }
-  }, [owner?.owner_id]); // Dependency array corrected
+  }, [owner?.owner_id]);
   
   const updateStatus = async (requestId, status) => {
     try {
@@ -62,165 +78,357 @@ const OwnerDashboard = () => {
     }
   };
 
-  // Logout function
   const handleSignOut = () => {
-    localStorage.removeItem("User"); // Clear local storage
-    navigate("/"); // Redirect to home page
+    localStorage.removeItem("User");
+    navigate("/");
   };
 
   return (
-    <div className="h-screen w-screen flex bg-[#330000] text-white">
-      {/* Sidebar */}
-      <div className={`transition-all duration-300 ${isSidebarOpen ? "w-64" : "w-32"} bg-[#3E2C2C] h-full shadow-xl border-r-4 border-[#C4A38A] flex flex-col p-3`}>
-        <button 
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-          className={`transition-all duration-300 mb-6 ${isSidebarOpen ? "text-[#B5927B] text-2xl self-end" : "text-[#A57B65] text-3xl self-center"}`}
-        >
-          {isSidebarOpen ? <FiX /> : <FiMenu />}
-        </button>
-
-        {isSidebarOpen && <h2 className="text-2xl font-bold text-[#D6B8A4] mb-6">Dashboard</h2>}
-
-        <button className={`flex ${isSidebarOpen ? "items-center space-x-2 text-lg" : "justify-center"} mb-4 text-[#B5927B] hover:text-[#A57B65]`} onClick={() => setActiveView("home")}> 
-          <FiHome className="text-xl" /> {isSidebarOpen && <span>Home</span>}
-        </button>
-
-        <button className={`flex ${isSidebarOpen ? "items-center space-x-2 text-lg" : "justify-center"} mb-4 text-[#B5927B] hover:text-[#A57B65]`} onClick={() => setActiveView("addTenant")}> 
-          <FiUserPlus className="text-xl" /> {isSidebarOpen && <span>Add Tenant</span>}
-        </button>
-
-        <button className={`flex ${isSidebarOpen ? "items-center space-x-2 text-lg" : "justify-center"} text-[#B5927B] hover:text-[#A57B65]`} onClick={() => setActiveView("issues")}> 
-          <FiAlertCircle className="text-xl" /> {isSidebarOpen && <span>Issue List</span>}
-        </button>
-
-        {/* Logout & Profile Buttons */}
-        <div className="mt-auto">
-          <button className={`flex ${isSidebarOpen ? "items-center space-x-2 text-lg" : "justify-center"} text-[#B5927B] hover:text-[#A57B65] mb-4`} onClick={() => setIsProfileOpen(true)}>
-            <FiUser className="text-xl" /> {isSidebarOpen && <span>Owner Profile</span>}
-          </button>
-          <button className={`flex ${isSidebarOpen ? "items-center space-x-2 text-lg" : "justify-center"} text-red-500 hover:text-red-400`} onClick={handleSignOut}>
-            <FiLogOut className="text-xl" /> {isSidebarOpen && <span>Sign Out</span>}
-          </button>
-        </div>
+    <div className="h-screen w-screen flex items-stretch bg-[#190000] text-white relative overflow-hidden">
+      {/* Fullscreen background with parallax effect */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ 
+          backgroundImage: "url('https://source.unsplash.com/1920x1080/?luxury,mansion,interior')",
+          transform: `translate(${mousePosition.x * -15}px, ${mousePosition.y * -15}px) scale(1.1)`,
+          transition: "transform 0.2s ease-out",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#000000] via-[#220000]/85 to-[#330000]/75"></div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-8 overflow-y-auto bg-[#D09683] text-[#330000] rounded-3xl shadow-2xl m-4 flex flex-col">
-      {activeView === "home" && (
-  <div className="p-6">
-    <h2 className="text-4xl font-bold mb-6 text-center">Available Tenants</h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {tenants.map((tenant) => (
-        <div
-          key={tenant.tenant_id}
-          className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200"
+      {/* Decorative Elements */}
+      <div className="absolute inset-0">
+        {/* Golden Radial Gradient */}
+        <div className="absolute top-1/4 left-1/4 w-1/2 h-1/2 rounded-full bg-[#D09683]/10 blur-3xl"></div>
+        
+        {/* Animated Particles */}
+        {[...Array(50)].map((_, i) => (
+          <div 
+            key={i}
+            className="absolute rounded-full"
+            style={{
+              width: `${Math.random() * 5 + 1}px`,
+              height: `${Math.random() * 5 + 1}px`,
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              background: `rgba(${208 + Math.random() * 30}, ${150 + Math.random() * 30}, ${131 + Math.random() * 30}, ${Math.random() * 0.5 + 0.3})`,
+              boxShadow: `0 0 ${Math.random() * 8 + 2}px rgba(${208}, ${150}, ${131}, 0.8)`,
+              animation: `float ${Math.random() * 15 + 10}s infinite ease-in-out`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Layout Structure */}
+      <div className="flex w-full h-full z-10">
+        {/* Sidebar */}
+        <motion.div 
+          initial={{ x: -100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className={`transition-all duration-300 ${isSidebarOpen ? "w-64" : "w-20"} bg-gradient-to-b from-[#2A0000] to-[#3E2C2C] h-full shadow-2xl border-r border-[#D09683]/30 flex flex-col p-4`}
         >
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            {tenant.tenant_name}
-          </h3>
-          <p className="text-gray-600">✉️ {tenant.email}</p>
-          <p className="text-gray-600">📞 {tenant.mobile_number}</p>
-          <p className="text-gray-600">📍 {tenant.address} , {tenant.location}</p>
+          <div className="flex items-center justify-between mb-10">
+            {isSidebarOpen && (
+              <div className="flex items-center">
+                <img src={logo} alt="Logo" className="w-8 h-8" />
+                <h2 className="text-xl font-light ml-2">
+                  <span className="font-bold text-[#D09683]">Luxury</span> Living
+                </h2>
+              </div>
+            )}
+            <button 
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+              className="text-[#D09683] hover:text-[#e9c2b5] transition-colors p-2 rounded-full hover:bg-[#D09683]/10"
+            >
+              {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+            </button>
+          </div>
           
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
-
-{activeView === "addTenant" && (
-  <div className="p-6">
-    <h2 className="text-4xl font-bold mb-6 text-center">Requested Tenants</h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {requests.map((request) => {
-        const tenantsArray = [request.tenants]; // Wrap the object in an array
-
-        return tenantsArray.map((tenant) => (
-          <div
-            key={tenant.tenant_id}
-            className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200"
-          >
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              {tenant.tenant_name}
-            </h3>
-            <p className="text-gray-600 mb-1">
-              📞 {tenant.mobile_number}
-            </p>
-            <p className="text-gray-600 mb-1">
-              📍 {request.requested_address}, {request.req_location}
-            </p>
-            <p className="text-gray-600 mb-4">
-              ✉️ {tenant.email}
-            </p>
-            <div className="flex justify-between">
-              <button
-                className="px-4 py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600"
-                onClick={() => updateStatus(request.request_id, "Accepted")}
-              >
-                ✅ Accept
-              </button>
-              <button
-                className="px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600"
-                onClick={() => updateStatus(request.request_id, "Rejected")}
-              >
-                ❌ Reject
-              </button>
+          <nav className="flex flex-col space-y-6">
+            <button 
+              className={`flex ${isSidebarOpen ? "items-center justify-start" : "justify-center"} p-3 rounded-xl transition-all duration-200 ${activeView === "home" ? "bg-[#D09683]/20 text-[#D09683]" : "text-gray-300 hover:bg-[#D09683]/10 hover:text-[#D09683]"}`}
+              onClick={() => setActiveView("home")}
+            > 
+              <FiHome size={20} />
+              {isSidebarOpen && <span className="ml-3 font-light">Home</span>}
+            </button>
+            
+            <button 
+              className={`flex ${isSidebarOpen ? "items-center justify-start" : "justify-center"} p-3 rounded-xl transition-all duration-200 ${activeView === "addTenant" ? "bg-[#D09683]/20 text-[#D09683]" : "text-gray-300 hover:bg-[#D09683]/10 hover:text-[#D09683]"}`}
+              onClick={() => setActiveView("addTenant")}
+            > 
+              <FiUserPlus size={20} />
+              {isSidebarOpen && <span className="ml-3 font-light">Add Tenant</span>}
+            </button>
+            
+            <button 
+              className={`flex ${isSidebarOpen ? "items-center justify-start" : "justify-center"} p-3 rounded-xl transition-all duration-200 ${activeView === "issues" ? "bg-[#D09683]/20 text-[#D09683]" : "text-gray-300 hover:bg-[#D09683]/10 hover:text-[#D09683]"}`}
+              onClick={() => setActiveView("issues")}
+            > 
+              <FiAlertCircle size={20} />
+              {isSidebarOpen && <span className="ml-3 font-light">Issue List</span>}
+            </button>
+          </nav>
+          
+          <div className="mt-auto border-t border-[#D09683]/20 pt-6 space-y-4">
+            <button 
+              className={`flex ${isSidebarOpen ? "items-center justify-start" : "justify-center"} w-full p-3 rounded-xl text-gray-300 hover:bg-[#D09683]/10 hover:text-[#D09683] transition-all duration-200`}
+              onClick={() => setIsProfileOpen(true)}
+            >
+              <FiUser size={20} />
+              {isSidebarOpen && <span className="ml-3 font-light">Profile</span>}
+            </button>
+            
+            <button 
+              className={`flex ${isSidebarOpen ? "items-center justify-start" : "justify-center"} w-full p-3 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200`}
+              onClick={handleSignOut}
+            >
+              <FiLogOut size={20} />
+              {isSidebarOpen && <span className="ml-3 font-light">Sign Out</span>}
+            </button>
+          </div>
+        </motion.div>
+        
+        {/* Main Content */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex-1 p-6 overflow-y-auto"
+        >
+          {/* Page Header */}
+          <div className="mb-10 flex justify-between items-center">
+            <h1 className="text-4xl font-light">
+              <span className="font-bold text-[#D09683]">{activeView === "home" ? "Home" : activeView === "addTenant" ? "Add Tenant" : "Issues"}</span> Dashboard
+            </h1>
+            <div className="text-[#D09683] opacity-80">
+              Welcome, {owner.owner_name}
             </div>
           </div>
-        ));
-      })}
-    </div>
-  </div>
-)}
-
-       
-
-{activeView === "issues" && (
-  <div className="p-6">
-    <h2 className="text-4xl font-bold mb-6 text-center">Issue List</h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {issues.map((issue) => (
-        <div
-          key={issue.issue_id}
-          className="bg-white p-6 rounded-2xl shadow-lg border border-gray-200"
-        >
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">
-            {issue.description}
-          </h3>
-          <p className="text-gray-600">
-            ⚠️ <span className="font-medium">Severity:</span> {issue.severity}
-          </p>
-          <p className="text-gray-600">
-            👤 <span className="font-medium">Raised by:</span> {issue.tenants.tenant_name}
-          </p>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
+          
+          {/* Content Views */}
+          <div className="bg-[#1A0000]/60 backdrop-blur-md rounded-3xl shadow-2xl border border-[#D09683]/20 overflow-hidden">
+            {activeView === "home" && (
+              <div className="p-8">
+                <h2 className="text-3xl font-light mb-8 text-center">
+                  <span className="font-bold text-[#D09683]">Available</span> Tenants
+                </h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {tenants.length > 0 ? tenants.map((tenant) => (
+                    <motion.div
+                      key={tenant.tenant_id}
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-gradient-to-br from-[#2A0000] to-[#380000] p-6 rounded-xl shadow-lg border border-[#D09683]/20"
+                    >
+                      <div className="flex items-center mb-4">
+                        <div className="w-10 h-10 rounded-full bg-[#D09683]/20 flex items-center justify-center text-[#D09683]">
+                          <FiUser size={20} />
+                        </div>
+                        <h3 className="text-xl font-light ml-3">
+                          <span className="font-bold text-[#D09683]">{tenant.tenant_name}</span>
+                        </h3>
+                      </div>
+                      
+                      <div className="space-y-3 text-gray-300">
+                        <p className="flex items-center">
+                          <span className="text-[#D09683] mr-2">✉️</span>
+                          {tenant.email}
+                        </p>
+                        <p className="flex items-center">
+                          <span className="text-[#D09683] mr-2">📞</span>
+                          {tenant.mobile_number}
+                        </p>
+                        <p className="flex items-center">
+                          <span className="text-[#D09683] mr-2">📍</span>
+                          {tenant.address}, {tenant.location}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )) : (
+                    <div className="col-span-3 text-center p-10 text-gray-400">
+                      No tenants available at the moment.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {activeView === "addTenant" && (
+              <div className="p-8">
+                <h2 className="text-3xl font-light mb-8 text-center">
+                  <span className="font-bold text-[#D09683]">Requested</span> Tenants
+                </h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {requests.length > 0 ? requests.map((request) => {
+                    const tenant = request.tenants;
+                    return (
+                      <motion.div
+                        key={request.request_id}
+                        whileHover={{ scale: 1.02 }}
+                        className="bg-gradient-to-br from-[#2A0000] to-[#380000] p-6 rounded-xl shadow-lg border border-[#D09683]/20"
+                      >
+                        <div className="flex items-center mb-4">
+                          <div className="w-10 h-10 rounded-full bg-[#D09683]/20 flex items-center justify-center text-[#D09683]">
+                            <FiUserPlus size={20} />
+                          </div>
+                          <h3 className="text-xl font-light ml-3">
+                            <span className="font-bold text-[#D09683]">{tenant.tenant_name}</span>
+                          </h3>
+                        </div>
+                        
+                        <div className="space-y-3 text-gray-300 mb-6">
+                          <p className="flex items-center">
+                            <span className="text-[#D09683] mr-2">✉️</span>
+                            {tenant.email}
+                          </p>
+                          <p className="flex items-center">
+                            <span className="text-[#D09683] mr-2">📞</span>
+                            {tenant.mobile_number}
+                          </p>
+                          <p className="flex items-center">
+                            <span className="text-[#D09683] mr-2">📍</span>
+                            {request.requested_address}, {request.req_location}
+                          </p>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <button
+                            className="flex-1 py-2 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-md hover:from-green-600 hover:to-green-700 transition-colors"
+                            onClick={() => updateStatus(request.request_id, "Accepted")}
+                          >
+                            Accept
+                          </button>
+                          <button
+                            className="flex-1 py-2 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow-md hover:from-red-600 hover:to-red-700 transition-colors"
+                            onClick={() => updateStatus(request.request_id, "Rejected")}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  }) : (
+                    <div className="col-span-3 text-center p-10 text-gray-400">
+                      No pending tenant requests at the moment.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {activeView === "issues" && (
+              <div className="p-8">
+                <h2 className="text-3xl font-light mb-8 text-center">
+                  <span className="font-bold text-[#D09683]">Issue</span> List
+                </h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {issues.length > 0 ? issues.map((issue) => (
+                    <motion.div
+                      key={issue.issue_id}
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-gradient-to-br from-[#2A0000] to-[#380000] p-6 rounded-xl shadow-lg border border-[#D09683]/20"
+                    >
+                      <div className="flex items-center mb-4">
+                        <div className="w-10 h-10 rounded-full bg-[#D09683]/20 flex items-center justify-center text-[#D09683]">
+                          <FiAlertCircle size={20} />
+                        </div>
+                        <h3 className="text-xl font-light ml-3 text-[#D09683]">
+                          Issue Report
+                        </h3>
+                      </div>
+                      
+                      <div className="space-y-3 text-gray-300">
+                        <p className="bg-[#D09683]/10 p-3 rounded-lg">
+                          {issue.description}
+                        </p>
+                        <p className="flex items-center">
+                          <span className="text-[#D09683] mr-2">⚠️</span>
+                          <span className="font-medium">Severity:</span>
+                          <span className={`ml-2 ${issue.severity === 'High' ? 'text-red-400' : issue.severity === 'Medium' ? 'text-yellow-400' : 'text-green-400'}`}>
+                            {issue.severity}
+                          </span>
+                        </p>
+                        <p className="flex items-center">
+                          <span className="text-[#D09683] mr-2">👤</span>
+                          <span className="font-medium">Reported by:</span>
+                          <span className="ml-2">{issue.tenants.tenant_name}</span>
+                        </p>
+                      </div>
+                    </motion.div>
+                  )) : (
+                    <div className="col-span-3 text-center p-10 text-gray-400">
+                      No pending issues at the moment.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
       </div>
-
+      
       {/* Profile Modal */}
       {isProfileOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-[#4F3D3D] p-6 rounded-lg shadow-xl w-96 text-center">
-            <FiUser className="text-6xl text-[#D09683] mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-[#D09683]">Owner Profile</h2>
-            <p className="text-white mt-2">Name: {owner.owner_name}</p>
-            <p className="text-white">Email: {owner.email}</p>
-            <p className="text-white">Phone: {owner.mobile_number}</p>
-            <p className="text-white">Address: {owner.address}</p>
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-gradient-to-br from-[#2A0000] to-[#3E2C2C] p-8 rounded-2xl shadow-2xl border border-[#D09683]/30 w-96"
+          >
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 rounded-full bg-[#D09683]/20 flex items-center justify-center text-[#D09683] mx-auto">
+                <FiUser size={40} />
+              </div>
+              <h2 className="text-2xl font-light mt-4">
+                <span className="font-bold text-[#D09683]">Owner</span> Profile
+              </h2>
+            </div>
+            
+            <div className="space-y-4 mb-6">
+              <div className="bg-[#1A0000]/60 p-3 rounded-lg">
+                <p className="text-sm text-gray-400">Full Name</p>
+                <p className="text-[#D09683]">{owner.owner_name}</p>
+              </div>
+              
+              <div className="bg-[#1A0000]/60 p-3 rounded-lg">
+                <p className="text-sm text-gray-400">Email Address</p>
+                <p className="text-[#D09683]">{owner.email}</p>
+              </div>
+              
+              <div className="bg-[#1A0000]/60 p-3 rounded-lg">
+                <p className="text-sm text-gray-400">Phone Number</p>
+                <p className="text-[#D09683]">{owner.mobile_number}</p>
+              </div>
+              
+              <div className="bg-[#1A0000]/60 p-3 rounded-lg">
+                <p className="text-sm text-gray-400">Address</p>
+                <p className="text-[#D09683]">{owner.address}</p>
+              </div>
+            </div>
+            
             <button 
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700" 
+              className="w-full py-3 bg-gradient-to-r from-[#D09683] to-[#e9c2b5] text-[#1A0000] font-medium rounded-lg shadow-md hover:from-[#e9c2b5] hover:to-[#D09683] transition-colors"
               onClick={() => setIsProfileOpen(false)}
             >
               Close
             </button>
-          </div>
+          </motion.div>
         </div>
       )}
+      
+      {/* Add CSS for floating animation */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-15px); }
+        }
+      `}</style>
     </div>
   );
 };
