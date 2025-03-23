@@ -6,6 +6,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 public interface TenantRepo extends MongoRepository<Tenants,String> {
 
     Tenants findByEmail(String email);
-
     Tenants findByEmailAndPassword(String email, String password);
 }

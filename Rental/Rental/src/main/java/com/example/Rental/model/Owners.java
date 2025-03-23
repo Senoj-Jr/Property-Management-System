@@ -1,8 +1,8 @@
 package com.example.Rental.model;
 
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import lombok.*;
 
 @Document(collection = "Owners") // MongoDB collection name
 @Data

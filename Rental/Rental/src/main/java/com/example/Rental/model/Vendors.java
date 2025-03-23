@@ -21,6 +21,14 @@ public class Vendors {
     Long aadhar_no;
     String password;
 
+    public String getJob() {
+        return job;
+    }
+
+    public void setJob(String job) {
+        this.job = job;
+    }
+
     public String getVendor_id() {
         return vendor_id;
     }
@@ -61,13 +69,7 @@ public class Vendors {
         this.address = address;
     }
 
-    public String getJob() {
-        return job;
-    }
 
-    public void setJob(String job) {
-        this.job = job;
-    }
 
     public Long getAadhar_no() {
         return aadhar_no;

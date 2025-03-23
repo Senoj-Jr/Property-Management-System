@@ -17,7 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/Owner")
-@CrossOrigin("http://localhost/5173")
+@CrossOrigin("*")
 public class OwnerController {
     @Autowired
     TenantRequestRepo tenantRequestRepo;
@@ -31,18 +31,27 @@ public class OwnerController {
     @GetMapping("/Pending-Request/{ownerId}")
     public List<TenantRequest> PendingList(@PathVariable String ownerId){
         ObjectId objectId = new ObjectId(ownerId);
+
+        System.out.println("called pending one");
         return tenantRequestRepo.findPendingRequest(objectId);
     }
 
     @GetMapping("/Accepted-Request/{ownerId}")
-    public  List<TenantRequest> AcceptedList(@PathVariable String ownerId){
+    public  ResponseEntity<?> AcceptedList(@PathVariable String ownerId){
         ObjectId objectId = new ObjectId(ownerId);
-        return tenantRequestRepo.findAcceptedRequest(objectId);
+        System.out.println("called accepted one");
+       List<TenantRequest> tenantRequests= tenantRequestRepo.findAcceptedRequest(objectId);
+       return ResponseEntity.ok(tenantRequests);
     }
 
     @PutMapping("/{requestId}/update-status")
     public ResponseEntity<?> updateStatus(@PathVariable String requestId, @RequestParam String status) {
+        System.out.println("Called to update");
+
         return ownerDashboardService.UpdateRequest(requestId, status);
+
+
+
     }
 
     @GetMapping("/All-Issues/{ownerId}")

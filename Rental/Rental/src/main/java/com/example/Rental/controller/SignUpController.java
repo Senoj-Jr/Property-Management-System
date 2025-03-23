@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin("http://localhost:5173")
+@CrossOrigin("*")
 @RequestMapping("/SignUp")
 public class SignUpController {
     @Autowired
@@ -21,7 +21,8 @@ public class SignUpController {
     @Autowired
     private OwnerRepo ownerRepo;
     @Autowired
-    private VendorRepo vendorRepo;
+    VendorRepo vendorRepo;
+
 
     @PostMapping("/Owners")
     public ResponseEntity<?> signUpOwner(@RequestBody Owners owner) {

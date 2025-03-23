@@ -5,7 +5,6 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,6 +19,9 @@ public interface TenantRequestRepo extends MongoRepository<TenantRequest, String
 
     @Query("{'owners.$id': ?0, 'status': 'Accepted'}")
     List<TenantRequest> findAcceptedRequest(ObjectId ownerId);
+
+    @Query("{'tenants.$id':?0,'status':'Pending'}")
+    List<TenantRequest> findRequestExistByTId(ObjectId tObjectId);
 
 //    @Query("{'status':'Pending'}")
 //    List<TenantRequest> findPending();

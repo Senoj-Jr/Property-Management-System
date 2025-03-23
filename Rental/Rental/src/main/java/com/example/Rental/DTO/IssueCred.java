@@ -1,12 +1,15 @@
 package com.example.Rental.DTO;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDateTime;
 public class IssueCred {
     String Statement;
     String Type;
     int Estimated_Days;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     LocalDateTime posted;
     String tenant_id;
-    String Owner_id;
+    String owner_id;
 
     public String getTenant_id() {
         return tenant_id;
@@ -17,11 +20,11 @@ public class IssueCred {
     }
 
     public String getOwner_id() {
-        return Owner_id;
+        return owner_id;
     }
 
     public void setOwner_id(String owner_id) {
-        this.Owner_id = owner_id;
+        this.owner_id = owner_id;
     }
 
 

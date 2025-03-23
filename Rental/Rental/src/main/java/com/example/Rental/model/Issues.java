@@ -1,6 +1,7 @@
 package com.example.Rental.model;
 
 
+import com.example.Rental.DTO.VendorRequest;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -16,7 +18,7 @@ import java.time.LocalDateTime;
 @Document(collection = "Issues")
 public class Issues {
     @Id
-    String Issue_id;
+    String issue_id;
     @DBRef
     Tenants tenants;
     @DBRef
@@ -27,13 +29,50 @@ public class Issues {
     int estimated_day;
     LocalDateTime posted_on;
     String status;
+    List<VendorRequest> activeRequests; // List of vendors who got the request
+    Vendors assignedVendor;
+    @DBRef
+    Vendors vendors;
+    private boolean manuallyAssigned;
+
+    public List<VendorRequest> getActiveRequests() {
+        return activeRequests;
+    }
+
+    public void setActiveRequests(List<VendorRequest> activeRequests) {
+        this.activeRequests = activeRequests;
+    }
+
+    public Vendors getAssignedVendor() {
+        return assignedVendor;
+    }
+
+    public void setAssignedVendor(Vendors assignedVendor) {
+        this.assignedVendor = assignedVendor;
+    }
+
+    public Vendors getVendors() {
+        return vendors;
+    }
+
+    public void setVendors(Vendors vendors) {
+        this.vendors = vendors;
+    }
+
+    public boolean isManuallyAssigned() {
+        return manuallyAssigned;
+    }
+
+    public void setManuallyAssigned(boolean manuallyAssigned) {
+        this.manuallyAssigned = manuallyAssigned;
+    }
 
     public String getIssue_id() {
-        return Issue_id;
+        return issue_id;
     }
 
     public void setIssue_id(String issue_id) {
-        Issue_id = issue_id;
+        this.issue_id = issue_id;
     }
 
     public Tenants getTenants() {

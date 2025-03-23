@@ -1,6 +1,5 @@
 package com.example.Rental.service;
 
-import com.example.Rental.DTO.Complaint;
 import com.example.Rental.DTO.SeverityRequest;
 import com.example.Rental.model.Issues;
 import com.example.Rental.model.Owners;
@@ -12,6 +11,7 @@ import com.example.Rental.repository.TenantRepo;
 import com.example.Rental.repository.TenantRequestRepo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +42,13 @@ public class TenantRequestService {
         Tenants tenant = tenantRepo.findById(tid).orElseThrow(()->new RuntimeException("Tenant Not Found"));
         Owners owner=ownerRepo.findByEmail(email);
         //Resolve multiple request to owner
+        ObjectId T_objectId = new ObjectId(tid);
+
+//        System.out.println(tenantRequestRepo.findRequestExistByTId(T_objectId));
+        if(tenantRequestRepo.findRequestExistByTId(T_objectId)!=null){
+            System.out.println("Already had a request");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Already made an request!!...Try Again later");
+        }
         if( owner==null){
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Invalid Credentials");
         }

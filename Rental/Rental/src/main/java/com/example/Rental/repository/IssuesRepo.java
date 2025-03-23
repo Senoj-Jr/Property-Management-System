@@ -16,4 +16,6 @@ public interface IssuesRepo extends MongoRepository<Issues,String> {
     List<Issues> findAllIssueById(ObjectId objectId);
     @Query("{'owners.$id': ?0, 'status': 'Pending'}")
     List<Issues> findPendingIssueById(ObjectId objectId);
+
+    List<Issues> findByActiveRequestsVendorId(String vendorId);
 }

@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@CrossOrigin("http://localhost:5173")
+@CrossOrigin("*")
 @RequestMapping("/SignIn")
 public class SignInController {
     @Autowired
@@ -22,6 +22,7 @@ public class SignInController {
     OwnerRepo ownerRepo;
     @Autowired
     VendorRepo vendorRepo;
+
     @PostMapping("/owner")
     public ResponseEntity<?> signInOwner(@RequestBody LoginCred loginCred) {
         System.out.println(loginCred.getEmail()+loginCred.getPassword());
@@ -53,6 +54,7 @@ public class SignInController {
         }
 
     }
+
     @PostMapping("/vendor")
     public ResponseEntity<?> signInVendor(@RequestBody LoginCred loginCred) {
         System.out.println(loginCred.getEmail() + loginCred.getPassword());
@@ -68,6 +70,4 @@ public class SignInController {
             }
         }
     }
-
-
 }
