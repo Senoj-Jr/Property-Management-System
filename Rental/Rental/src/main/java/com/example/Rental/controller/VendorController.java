@@ -4,7 +4,9 @@ package com.example.Rental.controller;
 import com.example.Rental.model.Issues;
 import com.example.Rental.repository.IssuesRepo;
 import com.example.Rental.service.VendorService;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,5 +38,15 @@ public class VendorController {
         List<Issues> issues=issuesRepo.findByActiveRequestsVendorId(vendorId);
         return ResponseEntity.ok(issues);
     }
+    @GetMapping("/Assigned-Issue/{vendorId}")
+    public ResponseEntity<?> AssignedList(@PathVariable String vendorId){
+        ObjectId vendorObjectId = new ObjectId(vendorId);  // Convert String to ObjectId
+        List<Issues> issues = issuesRepo.findByAssignedIssueByVendorId(vendorObjectId);
+
+        if (issues.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No assigned issues found.");
+        }
+
+        return ResponseEntity.ok(issues);}
 
 }

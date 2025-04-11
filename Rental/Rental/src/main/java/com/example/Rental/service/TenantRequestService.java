@@ -45,7 +45,7 @@ public class TenantRequestService {
         ObjectId T_objectId = new ObjectId(tid);
 
 //        System.out.println(tenantRequestRepo.findRequestExistByTId(T_objectId));
-        if(tenantRequestRepo.findRequestExistByTId(T_objectId)!=null){
+        if(!tenantRequestRepo.findRequestExistByTId(T_objectId).isEmpty()){
             System.out.println("Already had a request");
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Already made an request!!...Try Again later");
         }
