@@ -32,7 +32,7 @@ const TenantDashboard = () => {
     const storedTenant = localStorage.getItem("User");
     if (storedTenant) {
       const parsedTenant = JSON.parse(storedTenant);
-      console.log(parsedTenant.matched_owner.owner_id);
+      
       setTenant(parsedTenant);
     }
 
@@ -76,9 +76,12 @@ const TenantDashboard = () => {
       const response = await axios.post("http://localhost:8080/Tenant/Raise-issue", requestissue, {
         headers: { "Content-Type": "application/json" },
       });
-
+      
+      alert("Submitted successful!");
+      
       console.log("Issue Submitted Successfully:", response.data);
     } catch (error) {
+      alert("Submission Failed!!", error.response?.data || error.message);
       console.error("Submission Failed!!", error.response?.data || error.message);
     }
   };

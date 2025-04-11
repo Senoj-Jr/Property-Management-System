@@ -31,14 +31,40 @@ const SignupVendor = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
-    alert("Signup Successful!");
-    navigate("/vendor-dashboard");
+    const vendorData={
+      vendor_name:formData.name,
+      email:formData.email,
+      mobile_number:formData.mobile_number,
+      job:formData.job,
+      aadhar_no:formData.aadhar,
+      password:formData.password
+    }
+    try{
+      const response=await fetch("http://localhost:8080/SignUp/Vendors",{
+      method:"POST",
+      headers:{
+        "Content-Type" : "application/json",
+      },
+      body:JSON.stringify(vendorData),
+    });
+
+    if(response.ok){
+      localStorage.setItem("User",JSON.stringify(vendorData));
+      alert("SignUp Successfull");
+      navigate("/vendor-dashboard");
+    }else{
+      alert("Sign Up Failed!!")
+    }
+   }catch(err){
+    console.error("Error Submitting form: ",err);
+    alert("Error Connecting to the server.");
+   }// Redirect to Vendor Dashboard
   };
 
   return (

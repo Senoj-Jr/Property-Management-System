@@ -41,6 +41,7 @@ const SignInSignUp = () => {
       if (response.data.token) localStorage.setItem("token", response.data.token);
       navigate(`/${role}-dashboard`);
     } catch (err) {
+      alert(err);
       setError("Invalid email or password");
     } finally {
       setLoading(false);

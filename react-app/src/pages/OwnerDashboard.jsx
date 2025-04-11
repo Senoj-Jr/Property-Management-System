@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiMenu, FiX, FiUserPlus, FiAlertCircle, FiHome, FiUser, FiLogOut } from "react-icons/fi";
+import { FiMenu, FiX, FiUserPlus, FiAlertCircle, FiHome, FiUser, FiLogOut, FiCheck, FiX as FiCross, FiSend } from "react-icons/fi";
 import axios from "axios";
 import { motion } from "framer-motion";
 import logo from "../assets/logo.png"; // Assuming you have a logo
@@ -15,6 +15,14 @@ const OwnerDashboard = () => {
   const [requests, setRequest] = useState([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedIssueId, setSelectedIssueId] = useState(null);
+  const [vendorData, setVendorData] = useState({
+    vendor_name: "",
+    email: "",
+    mobile_number: "",
+    address: ""
+  });
   const navigate = useNavigate();
 
   // Track mouse position for parallax effect
@@ -72,6 +80,12 @@ const OwnerDashboard = () => {
       });
       console.log("Status Updated:", response.data);
       alert("Status updated successfully!");
+      // Refresh the requests list
+      axios.get(`http://localhost:8080/Owner/Pending-Request/${owner.owner_id}`)
+        .then((response) => {
+          setRequest(response.data);
+        })
+        .catch((err) => console.error("Error fetching pending tenant requests:", err));
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update status.");
@@ -82,6 +96,103 @@ const OwnerDashboard = () => {
     localStorage.removeItem("User");
     navigate("/");
   };
+
+  const handleVendorInputChange = (e) => {
+    const { name, value } = e.target;
+    setVendorData({ ...vendorData, [name]: value });
+  };
+
+  const openAssignModal = (issueId) => {
+    setSelectedIssueId(issueId);
+    setIsAssignModalOpen(true);
+  };
+
+  const closeAssignModal = () => {
+    setIsAssignModalOpen(false);
+    setSelectedIssueId(null);
+    setVendorData({
+      vendor_name: "",
+      email: "",
+      mobile_number: "",
+      address: ""
+    });
+  };
+
+  const handleAssignVendor = async () => {
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/Issues/${selectedIssueId}/assign/manual`,
+        vendorData
+      );
+      console.log("Vendor Assigned:", response.data);
+      alert("Vendor assigned successfully!");
+      closeAssignModal();
+      
+      // Refresh the issues list
+      axios.get(`http://localhost:8080/Owner/PendingIssue/${owner.owner_id}`)
+        .then((response) => {
+          setIssues(response.data);
+        })
+        .catch((err) => console.error("Error fetching pending issues:", err));
+    } catch (error) {
+      console.error("Error assigning vendor:", error);
+      alert("Failed to assign vendor.");
+    }
+  };
+
+  const handleRejectIssue = async (issueId) => {
+    try {
+      const response = await axios.put(`http://localhost:8080/Issues/Reject/${issueId}`);
+      console.log("Issue Rejected:", response.data);
+      alert("Issue rejected successfully!");
+      
+      // Refresh the issues list
+      axios.get(`http://localhost:8080/Owner/PendingIssue/${owner.owner_id}`)
+        .then((response) => {
+          setIssues(response.data);
+        })
+        .catch((err) => console.error("Error fetching pending issues:", err));
+    } catch (error) {
+      console.error("Error rejecting issue:", error);
+      alert("Failed to reject issue.");
+    }
+  };
+
+  const handleRequestVendor = async (issueId) => {
+    try {
+      // // Ensure owner_id is available
+      // if (!owner?.owner_id) {
+      //   console.error("Owner ID is missing!");
+      //   return;
+      // }
+  
+      // Get the issue details to determine its type
+      // const issueResponse = await axios.get(`http://localhost:8080/Issues/${issueId}`);
+      // const issueType = issueResponse.data.issue_type;
+  
+      // Ensure issueType is valid before making a request
+      // if (!issueType) {
+      //   console.error("Issue type is missing for issue:", issueId);
+      //   alert("Issue type not found. Cannot send vendor request.");
+      //   return;
+      // }
+  
+      // Send requests to all vendors with the same issue type
+      console.log(issueId);  
+      const response = await axios.post(`http://localhost:8080/Issues/${issueId}/send-requests`);
+      alert("Vendor requests sent to all matching vendors successfully!");
+      console.log("Vendor Requests Sent:", response.data);
+  
+      // Refresh the issues list
+      // const updatedIssues = await axios.get(`http://localhost:8080/Owner/PendingIssue/${owner.owner_id}`);
+      // setIssues(updatedIssues.data);
+  
+    } catch (error) {
+      console.error("Error sending vendor requests:", error);
+      alert("Failed to send vendor requests.");
+    }
+  };
+  
 
   return (
     <div className="h-screen w-screen flex items-stretch bg-[#190000] text-white relative overflow-hidden">
@@ -342,7 +453,7 @@ const OwnerDashboard = () => {
                         </h3>
                       </div>
                       
-                      <div className="space-y-3 text-gray-300">
+                      <div className="space-y-3 text-gray-300 mb-6">
                         <p className="bg-[#D09683]/10 p-3 rounded-lg">
                           {issue.description}
                         </p>
@@ -358,6 +469,36 @@ const OwnerDashboard = () => {
                           <span className="font-medium">Reported by:</span>
                           <span className="ml-2">{issue.tenants.tenant_name}</span>
                         </p>
+                        <p className="flex items-center">
+                          <span className="text-[#D09683] mr-2">👤</span>
+                          <span className="font-medium"> Issue Type:</span>
+                          <span className="ml-2">{issue.issue_type}</span>
+                        </p>
+                      </div>
+                      
+                      {/* Issue Actions */}
+                      <div className="grid grid-cols-3 gap-2 mt-4">
+                        <button
+                          className="flex items-center justify-center py-2 px-1 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-md hover:from-green-600 hover:to-green-700 transition-colors text-sm"
+                          onClick={() => openAssignModal(issue.issue_id)}
+                        >
+                          <FiCheck className="mr-1" size={14} />
+                          Assign
+                        </button>
+                        <button
+                          className="flex items-center justify-center py-2 px-1 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow-md hover:from-red-600 hover:to-red-700 transition-colors text-sm"
+                          onClick={() => handleRejectIssue(issue.issue_id)}
+                        >
+                          <FiCross className="mr-1" size={14} />
+                          Reject
+                        </button>
+                        <button
+                          className="flex items-center justify-center py-2 px-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition-colors text-sm"
+                          onClick={() => handleRequestVendor(issue.issue_id)}
+                        >
+                          <FiSend className="mr-1" size={14} />
+                          Request
+                        </button>
                       </div>
                     </motion.div>
                   )) : (
@@ -422,13 +563,91 @@ const OwnerDashboard = () => {
         </div>
       )}
       
-      {/* Add CSS for floating animation */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-15px); }
-        }
-      `}</style>
+      {/* Assign Vendor Modal */}
+      {isAssignModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="bg-gradient-to-br from-[#2A0000] to-[#3E2C2C] p-8 rounded-2xl shadow-2xl border border-[#D09683]/30 w-96"
+          >
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-[#D09683]/20 flex items-center justify-center text-[#D09683] mx-auto">
+                <FiUser size={32} />
+              </div>
+              <h2 className="text-2xl font-light mt-4">
+                <span className="font-bold text-[#D09683]">Assign</span> Vendor
+              </h2>
+            </div>
+            
+            <div className="space-y-4 mb-6">
+              <div className="bg-[#1A0000]/60 p-3 rounded-lg">
+                <label className="text-sm text-gray-400 block mb-1">Vendor Name</label>
+                <input
+                  type="text"
+                  name="vendor_name"
+                  value={vendorData.vendor_name}
+                  onChange={handleVendorInputChange}
+                  className="w-full bg-[#2A0000] text-[#D09683] border border-[#D09683]/30 rounded-lg p-2 focus:outline-none focus:border-[#D09683]"
+                  placeholder="Enter vendor name"
+                />
+              </div>
+              
+              <div className="bg-[#1A0000]/60 p-3 rounded-lg">
+                <label className="text-sm text-gray-400 block mb-1">Email Address</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={vendorData.email}
+                  onChange={handleVendorInputChange}
+                  className="w-full bg-[#2A0000] text-[#D09683] border border-[#D09683]/30 rounded-lg p-2 focus:outline-none focus:border-[#D09683]"
+                  placeholder="Enter email address"
+                />
+              </div>
+              
+              <div className="bg-[#1A0000]/60 p-3 rounded-lg">
+                <label className="text-sm text-gray-400 block mb-1">Mobile Number</label>
+                <input
+                  type="text"
+                  name="mobile_number"
+                  value={vendorData.mobile_number}
+                  onChange={handleVendorInputChange}
+                  className="w-full bg-[#2A0000] text-[#D09683] border border-[#D09683]/30 rounded-lg p-2 focus:outline-none focus:border-[#D09683]"
+                  placeholder="Enter mobile number"
+                />
+              </div>
+              
+              <div className="bg-[#1A0000]/60 p-3 rounded-lg">
+                <label className="text-sm text-gray-400 block mb-1">Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={vendorData.address}
+                  onChange={handleVendorInputChange}
+                  className="w-full bg-[#2A0000] text-[#D09683] border border-[#D09683]/30 rounded-lg p-2 focus:outline-none focus:border-[#D09683]"
+                  placeholder="Enter address"
+                />
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button 
+                className="flex-1 py-3 bg-gradient-to-r from-[#D09683] to-[#e9c2b5] text-[#1A0000] font-medium rounded-lg shadow-md hover:from-[#e9c2b5] hover:to-[#D09683] transition-colors"
+                onClick={handleAssignVendor}
+              >
+                Assign
+              </button>
+              <button 
+                className="flex-1 py-3 bg-gray-700 text-white font-medium rounded-lg shadow-md hover:bg-gray-600 transition-colors"
+                onClick={closeAssignModal}
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
